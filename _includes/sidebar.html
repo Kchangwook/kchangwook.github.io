@@ -17,7 +17,7 @@
   <!-- .profile-wrapper -->
 
   <nav class="flex-column flex-grow-1 w-100 ps-0">
-    <!-- search in sidebar nav -->
+    <!-- Search -->
     <div class="sidebar-search-wrapper">
       <search id="search" class="align-items-center">
         <i class="fas fa-search fa-fw"></i>
@@ -32,26 +32,7 @@
       </search>
     </div>
 
-    <ul class="nav">
-      <!-- home -->
-      <li class="nav-item{% if page.layout == 'home' %}{{ ' active' }}{% endif %}">
-        <a href="{{ '/' | relative_url }}" class="nav-link">
-          <i class="fa-fw fas fa-home"></i>
-          <span>{{ site.data.locales[include.lang].tabs.home | upcase }}</span>
-        </a>
-      </li>
-
-      <!-- categories header -->
-      <li class="nav-item{% if page.url == '/categories/' %}{{ ' active' }}{% endif %}">
-        <a href="{{ '/categories/' | relative_url }}" class="nav-link sidebar-cat-header">
-          <i class="fa-fw fas fa-stream"></i>
-          <span>{{ site.data.locales[include.lang].tabs.categories | upcase }}</span>
-          <span class="sidebar-cat-count ms-auto">{{ site.posts | size }}</span>
-        </a>
-      </li>
-    </ul>
-
-    <!-- Category Depth Tree -->
+    <!-- Tistory-style Category Tree -->
     {% assign top_categories = '' | split: '' %}
     {% for post in site.posts %}
       {% assign c0 = post.categories[0] %}
@@ -63,9 +44,17 @@
     {% endfor %}
     {% assign top_categories = top_categories | sort %}
 
-    <div class="sidebar-cat-tree">
+    <div class="tistory-category">
+      <a
+        href="{{ '/' | relative_url }}"
+        class="tcat-all{% if page.layout == 'home' %} active{% endif %}"
+      >
+        <span class="tcat-all-title">분류 전체보기</span>
+        <span class="tcat-count">({{ site.posts | size }})</span>
+      </a>
+
       {% if top_categories.size > 0 %}
-        <ul class="cat-tree-list cat-depth-1">
+        <ul class="tcat-list tcat-depth-1">
           {% for top_cat in top_categories %}
             {% capture top_url %}/categories/{{ top_cat | slugify | url_encode }}/{% endcapture %}
             {% assign top_count = 0 %}
@@ -87,19 +76,20 @@
               {% assign is_top_active = true %}
             {% endif %}
 
-            <li class="cat-tree-item">
+            <li class="tcat-item tcat-item-1">
               {% if sub_categories.size > 0 %}
-                <details class="cat-branch" open>
-                  <summary class="cat-row{% if is_top_active %} active{% endif %}">
-                    <i class="fas fa-angle-right cat-chevron" aria-hidden="true"></i>
-                    <a href="{{ top_url | relative_url }}" class="cat-link">
-                      <i class="far fa-folder-open fa-fw cat-icon" aria-hidden="true"></i>
-                      <span class="cat-name">{{ top_cat }}</span>
+                <details class="tcat-branch" open>
+                  <summary class="tcat-row tcat-row-1{% if is_top_active %} active{% endif %}">
+                    <a href="{{ top_url | relative_url }}" class="tcat-link">
+                      <span class="tcat-name">{{ top_cat }}</span>
+                      <span class="tcat-count">({{ top_count }})</span>
                     </a>
-                    <span class="cat-count">{{ top_count }}</span>
+                    <span class="tcat-toggle" aria-hidden="true">
+                      <i class="fas fa-chevron-right"></i>
+                    </span>
                   </summary>
 
-                  <ul class="cat-tree-list cat-depth-2">
+                  <ul class="tcat-list tcat-depth-2">
                     {% for sub_cat in sub_categories %}
                       {% capture sub_url %}/categories/{{ sub_cat | slugify | url_encode }}/{% endcapture %}
                       {% assign sub_count = 0 %}
@@ -121,19 +111,20 @@
                         {% assign is_sub_active = true %}
                       {% endif %}
 
-                      <li class="cat-tree-item">
+                      <li class="tcat-item tcat-item-2">
                         {% if sub3_categories.size > 0 %}
-                          <details class="cat-branch" open>
-                            <summary class="cat-row{% if is_sub_active %} active{% endif %}">
-                              <i class="fas fa-angle-right cat-chevron" aria-hidden="true"></i>
-                              <a href="{{ sub_url | relative_url }}" class="cat-link">
-                                <i class="far fa-folder fa-fw cat-icon" aria-hidden="true"></i>
-                                <span class="cat-name">{{ sub_cat }}</span>
+                          <details class="tcat-branch" open>
+                            <summary class="tcat-row tcat-row-2{% if is_sub_active %} active{% endif %}">
+                              <a href="{{ sub_url | relative_url }}" class="tcat-link">
+                                <span class="tcat-name">{{ sub_cat }}</span>
+                                <span class="tcat-count">({{ sub_count }})</span>
                               </a>
-                              <span class="cat-count">{{ sub_count }}</span>
+                              <span class="tcat-toggle" aria-hidden="true">
+                                <i class="fas fa-chevron-right"></i>
+                              </span>
                             </summary>
 
-                            <ul class="cat-tree-list cat-depth-3">
+                            <ul class="tcat-list tcat-depth-3">
                               {% for sub3_cat in sub3_categories %}
                                 {% capture sub3_url %}/categories/{{ sub3_cat | slugify | url_encode }}/{% endcapture %}
                                 {% assign sub3_count = 0 %}
@@ -147,24 +138,23 @@
                                   {% assign is_sub3_active = true %}
                                 {% endif %}
 
-                                <li class="cat-tree-item">
-                                  <div class="cat-row cat-leaf{% if is_sub3_active %} active{% endif %}">
-                                    <a href="{{ sub3_url | relative_url }}" class="cat-link">
-                                      <span class="cat-name">{{ sub3_cat }}</span>
+                                <li class="tcat-item tcat-item-3">
+                                  <div class="tcat-row tcat-row-3{% if is_sub3_active %} active{% endif %}">
+                                    <a href="{{ sub3_url | relative_url }}" class="tcat-link">
+                                      <span class="tcat-name">{{ sub3_cat }}</span>
+                                      <span class="tcat-count">({{ sub3_count }})</span>
                                     </a>
-                                    <span class="cat-count">{{ sub3_count }}</span>
                                   </div>
                                 </li>
                               {% endfor %}
                             </ul>
                           </details>
                         {% else %}
-                          <div class="cat-row cat-leaf{% if is_sub_active %} active{% endif %}">
-                            <a href="{{ sub_url | relative_url }}" class="cat-link">
-                              <i class="far fa-folder fa-fw cat-icon" aria-hidden="true"></i>
-                              <span class="cat-name">{{ sub_cat }}</span>
+                          <div class="tcat-row tcat-row-2{% if is_sub_active %} active{% endif %}">
+                            <a href="{{ sub_url | relative_url }}" class="tcat-link">
+                              <span class="tcat-name">{{ sub_cat }}</span>
+                              <span class="tcat-count">({{ sub_count }})</span>
                             </a>
-                            <span class="cat-count">{{ sub_count }}</span>
                           </div>
                         {% endif %}
                       </li>
@@ -172,20 +162,18 @@
                   </ul>
                 </details>
               {% else %}
-                <div class="cat-row cat-leaf{% if is_top_active %} active{% endif %}">
-                  <span class="cat-chevron-spacer" aria-hidden="true"></span>
-                  <a href="{{ top_url | relative_url }}" class="cat-link">
-                    <i class="far fa-folder fa-fw cat-icon" aria-hidden="true"></i>
-                    <span class="cat-name">{{ top_cat }}</span>
+                <div class="tcat-row tcat-row-1{% if is_top_active %} active{% endif %}">
+                  <a href="{{ top_url | relative_url }}" class="tcat-link">
+                    <span class="tcat-name">{{ top_cat }}</span>
+                    <span class="tcat-count">({{ top_count }})</span>
                   </a>
-                  <span class="cat-count">{{ top_count }}</span>
                 </div>
               {% endif %}
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p class="cat-tree-empty mb-0">등록된 카테고리가 없습니다</p>
+        <p class="tcat-empty mb-0">등록된 글이 없습니다</p>
       {% endif %}
     </div>
   </nav>
