@@ -1,0 +1,228 @@
+<!-- In-place Search & Tag Filter Loader (preserves sidebar, right panel, and footer) -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('sidebar-search-input');
+    const searchBox = document.getElementById('sidebar-search');
+    const mainEl = document.querySelector('main[aria-label="Main Content"]');
+    if (!mainEl) return;
+
+    const searchJsonUrl = '{{ "/assets/js/data/search.json" | relative_url }}';
+    let postsCache = null;
+    let fetchPromise = null;
+    let resultsContainer = null;
+    let hiddenChildren = [];
+    let activeTag = null;
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const m = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m ? `${m[1]}/${m[2]}/${m[3]}` : dateStr;
+    }
+
+    function makeSnippet(content, maxLen = 140) {
+      const clean = String(content || '').replace(/\s+/g, ' ').trim();
+      return clean.length > maxLen ? `${clean.slice(0, maxLen)}...` : clean;
+    }
+
+    function loadPosts() {
+      if (postsCache) return Promise.resolve(postsCache);
+      if (!fetchPromise) {
+        fetchPromise = fetch(searchJsonUrl)
+          .then((res) => (res.ok ? res.json() : []))
+          .then((data) => {
+            postsCache = Array.isArray(data) ? data : [];
+            return postsCache;
+          })
+          .catch(() => []);
+      }
+      return fetchPromise;
+    }
+
+    function updateActiveTagHighlight(tagName) {
+      activeTag = tagName || null;
+      document.querySelectorAll('.post-tag').forEach((el) => {
+        const text = el.textContent.trim().toLowerCase();
+        el.classList.toggle('tag-active', Boolean(activeTag && text === activeTag.toLowerCase()));
+      });
+    }
+
+    function restoreOriginalView() {
+      if (resultsContainer && resultsContainer.parentNode) {
+        resultsContainer.parentNode.removeChild(resultsContainer);
+      }
+      resultsContainer = null;
+      hiddenChildren.forEach((el) => el.classList.remove('d-none'));
+      hiddenChildren = [];
+      updateActiveTagHighlight(null);
+    }
+
+    function ensureResultsContainer() {
+      if (!resultsContainer) {
+        hiddenChildren = Array.from(mainEl.children).filter(
+          (el) => !el.classList.contains('d-none')
+        );
+        hiddenChildren.forEach((el) => el.classList.add('d-none'));
+
+        resultsContainer = document.createElement('div');
+        resultsContainer.id = 'inline-search-results';
+        resultsContainer.className = 'flex-grow-1 px-xl-1';
+        mainEl.appendChild(resultsContainer);
+      }
+      return resultsContainer;
+    }
+
+    function renderResults(headerLabelHtml, matches, emptyMsg) {
+      const container = ensureResultsContainer();
+      const headerHtml = `
+        <div class="inline-search-header">
+          <span class="inline-search-summary">
+            ${headerLabelHtml} <span>(${matches.length})</span>
+          </span>
+          <button type="button" class="inline-search-clear">초기화</button>
+        </div>
+      `;
+
+      if (matches.length === 0) {
+        container.innerHTML = `
+          ${headerHtml}
+          <div class="inline-search-empty">${escapeHtml(emptyMsg)}</div>
+        `;
+      } else {
+        const cardsHtml = matches
+          .map((post) => {
+            const catsHtml = post.categories
+              ? `<i class="far fa-folder-open fa-fw me-1"></i><span class="categories">${escapeHtml(post.categories)}</span>`
+              : '';
+            return `
+              <article class="card-wrapper card">
+                <a href="${escapeHtml(post.url)}" class="post-preview row g-0 flex-md-row-reverse">
+                  <div class="col-md-12">
+                    <div class="card-body d-flex flex-column">
+                      <h1 class="card-title my-2 mt-md-0">${escapeHtml(post.title)}</h1>
+                      <div class="card-text content mt-0 mb-3">
+                        <p>${escapeHtml(makeSnippet(post.content))}</p>
+                      </div>
+                      <div class="post-meta flex-grow-1 d-flex align-items-end">
+                        <div class="me-auto">
+                          <i class="far fa-calendar fa-fw me-1"></i>
+                          <time>${escapeHtml(formatDate(post.date))}</time>
+                          ${catsHtml}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </article>
+            `;
+          })
+          .join('');
+
+        container.innerHTML = `${headerHtml}${cardsHtml}`;
+      }
+
+      const clearBtn = container.querySelector('.inline-search-clear');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          if (input) input.value = '';
+          restoreOriginalView();
+        });
+      }
+    }
+
+    async function handleSearch() {
+      if (!input) return;
+      const query = input.value.trim();
+      updateActiveTagHighlight(null);
+
+      if (!query) {
+        restoreOriginalView();
+        return;
+      }
+
+      const posts = await loadPosts();
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+      const matches = posts.filter((post) => {
+        const haystack = [post.title, post.categories, post.tags, post.content]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return terms.every((term) => haystack.includes(term));
+      });
+
+      renderResults(
+        `<strong>"${escapeHtml(query)}"</strong> 검색 결과`,
+        matches,
+        '일치하는 게시글이 없습니다.'
+      );
+    }
+
+    async function handleTagFilter(tagName) {
+      const normalized = tagName.trim();
+      if (!normalized) return;
+
+      if (activeTag && activeTag.toLowerCase() === normalized.toLowerCase()) {
+        restoreOriginalView();
+        return;
+      }
+
+      if (input) input.value = '';
+      updateActiveTagHighlight(normalized);
+
+      const posts = await loadPosts();
+      const target = normalized.toLowerCase();
+      const matches = posts.filter((post) => {
+        const tags = String(post.tags || '')
+          .split(',')
+          .map((t) => t.trim().toLowerCase())
+          .filter(Boolean);
+        return tags.includes(target);
+      });
+
+      renderResults(
+        `<strong>#${escapeHtml(normalized)}</strong> 태그 게시글`,
+        matches,
+        '해당 태그의 게시글이 없습니다.'
+      );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if (input) {
+      input.addEventListener('focus', () => {
+        if (searchBox) searchBox.classList.add('input-focus');
+        loadPosts();
+      });
+
+      input.addEventListener('blur', () => {
+        if (searchBox) searchBox.classList.remove('input-focus');
+      });
+
+      input.addEventListener('input', handleSearch);
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          input.value = '';
+          restoreOriginalView();
+          input.blur();
+        }
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      const tagLink = e.target.closest('a.post-tag');
+      if (!tagLink) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+      e.preventDefault();
+      handleTagFilter(tagLink.textContent);
+    });
+  });
+</script>

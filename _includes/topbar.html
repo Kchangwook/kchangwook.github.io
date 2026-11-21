@@ -9,11 +9,14 @@
       <i class="fas fa-bars fa-fw"></i>
     </button>
 
-    <!-- Kept empty/hidden to preserve Chirpy JS bindings without rendering header text -->
+    <!-- Kept empty/hidden to preserve Chirpy JS bindings without rendering header text or hiding main UI on search -->
     <div id="topbar-title" aria-hidden="true"></div>
     <button type="button" id="search-trigger" class="btn btn-link d-none" aria-label="Search" tabindex="-1">
       <i class="fas fa-search fa-fw"></i>
     </button>
+    <search id="search" class="d-none" aria-hidden="true">
+      <input id="search-input" type="search" tabindex="-1">
+    </search>
     <button type="button" class="btn btn-link text-decoration-none d-none" id="search-cancel" tabindex="-1">
       {{- site.data.locales[include.lang].search.cancel -}}
     </button>

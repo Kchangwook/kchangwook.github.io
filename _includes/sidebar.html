@@ -12,18 +12,20 @@
     </a>
 
     <a class="site-title d-block" href="{{ '/' | relative_url }}">{{ site.title }}</a>
-    <p class="site-subtitle fst-italic mb-0">{{ site.tagline }}</p>
+    {%- if site.tagline != empty and site.tagline -%}
+      <p class="site-subtitle fst-italic mb-0">{{ site.tagline }}</p>
+    {%- endif -%}
   </header>
   <!-- .profile-wrapper -->
 
   <nav class="flex-column flex-grow-1 w-100 ps-0">
     <!-- Search -->
     <div class="sidebar-search-wrapper">
-      <search id="search" class="align-items-center">
+      <search id="sidebar-search" class="align-items-center">
         <i class="fas fa-search fa-fw"></i>
         <input
           class="form-control"
-          id="search-input"
+          id="sidebar-search-input"
           type="search"
           aria-label="search"
           autocomplete="off"
@@ -47,7 +49,15 @@
     <div class="tistory-category">
       <a
         href="{{ '/' | relative_url }}"
-        class="tcat-all{% if page.layout == 'home' %} active{% endif %}"
+        class="tcat-home{% if page.layout == 'home' %} active{% endif %}"
+      >
+        <i class="fa-fw fas fa-home" aria-hidden="true"></i>
+        <span>{{ site.data.locales[include.lang].tabs.home | upcase }}</span>
+      </a>
+
+      <a
+        href="{{ '/categories/' | relative_url }}"
+        class="tcat-all{% if page.url == '/categories/' %} active{% endif %}"
       >
         <span class="tcat-all-title">분류 전체보기</span>
         <span class="tcat-count">({{ site.posts | size }})</span>
