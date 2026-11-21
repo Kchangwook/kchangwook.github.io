@@ -1,0 +1,297 @@
+<!-- The Side Bar -->
+
+<aside aria-label="Sidebar" id="sidebar" class="d-flex flex-column align-items-end">
+  <header class="profile-wrapper">
+    <a href="{{ '/' | relative_url }}" id="avatar" class="rounded-circle">
+      {%- if site.avatar != empty and site.avatar -%}
+        {%- capture avatar_url -%}
+          {% include media-url.html src=site.avatar %}
+        {%- endcapture -%}
+        <img src="{{- avatar_url -}}" width="112" height="112" alt="avatar" onerror="this.style.display='none'">
+      {%- endif -%}
+    </a>
+
+    <a class="site-title d-block" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <p class="site-subtitle fst-italic mb-0">{{ site.tagline }}</p>
+  </header>
+  <!-- .profile-wrapper -->
+
+  <nav class="flex-column flex-grow-1 w-100 ps-0">
+    <!-- search in sidebar nav -->
+    <div class="sidebar-search-wrapper">
+      <search id="search" class="align-items-center">
+        <i class="fas fa-search fa-fw"></i>
+        <input
+          class="form-control"
+          id="search-input"
+          type="search"
+          aria-label="search"
+          autocomplete="off"
+          placeholder="{{ site.data.locales[include.lang].search.hint | capitalize }}..."
+        >
+      </search>
+    </div>
+
+    <ul class="nav">
+      <!-- home -->
+      <li class="nav-item{% if page.layout == 'home' %}{{ ' active' }}{% endif %}">
+        <a href="{{ '/' | relative_url }}" class="nav-link">
+          <i class="fa-fw fas fa-home"></i>
+          <span>{{ site.data.locales[include.lang].tabs.home | upcase }}</span>
+        </a>
+      </li>
+
+      <!-- categories header -->
+      <li class="nav-item{% if page.url == '/categories/' %}{{ ' active' }}{% endif %}">
+        <a href="{{ '/categories/' | relative_url }}" class="nav-link sidebar-cat-header">
+          <i class="fa-fw fas fa-stream"></i>
+          <span>{{ site.data.locales[include.lang].tabs.categories | upcase }}</span>
+          <span class="sidebar-cat-count ms-auto">{{ site.posts | size }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Category Depth Tree -->
+    {% assign top_categories = '' | split: '' %}
+    {% for post in site.posts %}
+      {% assign c0 = post.categories[0] %}
+      {% if c0 %}
+        {% unless top_categories contains c0 %}
+          {% assign top_categories = top_categories | push: c0 %}
+        {% endunless %}
+      {% endif %}
+    {% endfor %}
+    {% assign top_categories = top_categories | sort %}
+
+    <div class="sidebar-cat-tree">
+      {% if top_categories.size > 0 %}
+        <ul class="cat-tree-list cat-depth-1">
+          {% for top_cat in top_categories %}
+            {% capture top_url %}/categories/{{ top_cat | slugify | url_encode }}/{% endcapture %}
+            {% assign top_count = 0 %}
+            {% assign sub_categories = '' | split: '' %}
+            {% for post in site.posts %}
+              {% if post.categories[0] == top_cat %}
+                {% assign top_count = top_count | plus: 1 %}
+                {% assign c1 = post.categories[1] %}
+                {% if c1 %}
+                  {% unless sub_categories contains c1 %}
+                    {% assign sub_categories = sub_categories | push: c1 %}
+                  {% endunless %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% assign sub_categories = sub_categories | sort %}
+            {% assign is_top_active = false %}
+            {% if page.layout == 'category' and page.title == top_cat %}
+              {% assign is_top_active = true %}
+            {% endif %}
+
+            <li class="cat-tree-item">
+              {% if sub_categories.size > 0 %}
+                <details class="cat-branch" open>
+                  <summary class="cat-row{% if is_top_active %} active{% endif %}">
+                    <i class="fas fa-angle-right cat-chevron" aria-hidden="true"></i>
+                    <a href="{{ top_url | relative_url }}" class="cat-link">
+                      <i class="far fa-folder-open fa-fw cat-icon" aria-hidden="true"></i>
+                      <span class="cat-name">{{ top_cat }}</span>
+                    </a>
+                    <span class="cat-count">{{ top_count }}</span>
+                  </summary>
+
+                  <ul class="cat-tree-list cat-depth-2">
+                    {% for sub_cat in sub_categories %}
+                      {% capture sub_url %}/categories/{{ sub_cat | slugify | url_encode }}/{% endcapture %}
+                      {% assign sub_count = 0 %}
+                      {% assign sub3_categories = '' | split: '' %}
+                      {% for post in site.posts %}
+                        {% if post.categories[0] == top_cat and post.categories[1] == sub_cat %}
+                          {% assign sub_count = sub_count | plus: 1 %}
+                          {% assign c2 = post.categories[2] %}
+                          {% if c2 %}
+                            {% unless sub3_categories contains c2 %}
+                              {% assign sub3_categories = sub3_categories | push: c2 %}
+                            {% endunless %}
+                          {% endif %}
+                        {% endif %}
+                      {% endfor %}
+                      {% assign sub3_categories = sub3_categories | sort %}
+                      {% assign is_sub_active = false %}
+                      {% if page.layout == 'category' and page.title == sub_cat %}
+                        {% assign is_sub_active = true %}
+                      {% endif %}
+
+                      <li class="cat-tree-item">
+                        {% if sub3_categories.size > 0 %}
+                          <details class="cat-branch" open>
+                            <summary class="cat-row{% if is_sub_active %} active{% endif %}">
+                              <i class="fas fa-angle-right cat-chevron" aria-hidden="true"></i>
+                              <a href="{{ sub_url | relative_url }}" class="cat-link">
+                                <i class="far fa-folder fa-fw cat-icon" aria-hidden="true"></i>
+                                <span class="cat-name">{{ sub_cat }}</span>
+                              </a>
+                              <span class="cat-count">{{ sub_count }}</span>
+                            </summary>
+
+                            <ul class="cat-tree-list cat-depth-3">
+                              {% for sub3_cat in sub3_categories %}
+                                {% capture sub3_url %}/categories/{{ sub3_cat | slugify | url_encode }}/{% endcapture %}
+                                {% assign sub3_count = 0 %}
+                                {% for post in site.posts %}
+                                  {% if post.categories[0] == top_cat and post.categories[1] == sub_cat and post.categories[2] == sub3_cat %}
+                                    {% assign sub3_count = sub3_count | plus: 1 %}
+                                  {% endif %}
+                                {% endfor %}
+                                {% assign is_sub3_active = false %}
+                                {% if page.layout == 'category' and page.title == sub3_cat %}
+                                  {% assign is_sub3_active = true %}
+                                {% endif %}
+
+                                <li class="cat-tree-item">
+                                  <div class="cat-row cat-leaf{% if is_sub3_active %} active{% endif %}">
+                                    <a href="{{ sub3_url | relative_url }}" class="cat-link">
+                                      <span class="cat-name">{{ sub3_cat }}</span>
+                                    </a>
+                                    <span class="cat-count">{{ sub3_count }}</span>
+                                  </div>
+                                </li>
+                              {% endfor %}
+                            </ul>
+                          </details>
+                        {% else %}
+                          <div class="cat-row cat-leaf{% if is_sub_active %} active{% endif %}">
+                            <a href="{{ sub_url | relative_url }}" class="cat-link">
+                              <i class="far fa-folder fa-fw cat-icon" aria-hidden="true"></i>
+                              <span class="cat-name">{{ sub_cat }}</span>
+                            </a>
+                            <span class="cat-count">{{ sub_count }}</span>
+                          </div>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </details>
+              {% else %}
+                <div class="cat-row cat-leaf{% if is_top_active %} active{% endif %}">
+                  <span class="cat-chevron-spacer" aria-hidden="true"></span>
+                  <a href="{{ top_url | relative_url }}" class="cat-link">
+                    <i class="far fa-folder fa-fw cat-icon" aria-hidden="true"></i>
+                    <span class="cat-name">{{ top_cat }}</span>
+                  </a>
+                  <span class="cat-count">{{ top_count }}</span>
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="cat-tree-empty mb-0">등록된 카테고리가 없습니다</p>
+      {% endif %}
+    </div>
+  </nav>
+
+  <div class="sidebar-bottom d-flex flex-wrap align-items-center w-100">
+    {% unless site.theme_mode == 'light' or site.theme_mode == 'dark' %}
+      {%- capture icon_system -%}
+        <i class="fa-solid fa-display" data-theme-mode="system"></i>
+      {%- endcapture -%}
+
+      {%- capture icon_light -%}
+        <i class="fa-regular fa-sun" data-theme-mode="light"></i>
+      {%- endcapture -%}
+
+      {%- capture icon_dark -%}
+        <i class="fa-regular fa-moon" data-theme-mode="dark"></i>
+      {%- endcapture -%}
+
+      <div class="btn-group dropup">
+        <button
+          type="button"
+          class="btn btn-link nav-link"
+          aria-label="Switch Mode"
+          id="mode-toggle"
+          data-bs-toggle="dropdown"
+        >
+          {{- icon_light -}}
+          {{- icon_dark -}}
+          {{- icon_system -}}
+        </button>
+        <ul class="dropdown-menu rounded-3 mb-1 p-1">
+          <li>
+            <button class="dropdown-item d-flex align-items-center" type="button" data-theme-mode="light">
+              {{- icon_light -}}
+              {{- site.data.locales[lang].theme.light -}}
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item d-flex align-items-center" type="button" data-theme-mode="dark">
+              {{- icon_dark -}}
+              {{- site.data.locales[lang].theme.dark -}}
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item d-flex align-items-center" type="button" data-theme-mode="system">
+              {{- icon_system -}}
+              {{- site.data.locales[lang].theme.system -}}
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      {% if site.data.contact.size > 0 %}
+        <span class="icon-border"></span>
+      {% endif %}
+    {% endunless %}
+
+    {% for entry in site.data.contact %}
+      {%- assign url = null -%}
+
+      {% case entry.type %}
+        {% when 'github', 'twitter' %}
+          {%- unless site[entry.type].username -%}
+            {%- continue -%}
+          {%- endunless -%}
+          {%- capture url -%}
+            https://{{ entry.type }}.com/{{ site[entry.type].username }}
+          {%- endcapture -%}
+        {% when 'email' %}
+          {%- unless site.social.email -%}
+            {%- continue -%}
+          {%- endunless -%}
+          {%- assign email = site.social.email | split: '@' -%}
+          {%- capture url -%}
+            javascript:void(location.href = 'mailto:' + ['{{ email[0] }}','{{ email[1] }}'].join('@'))
+          {%- endcapture -%}
+        {% when 'rss' %}
+          {% assign url = '/feed.xml' | relative_url %}
+        {% else %}
+          {% assign url = entry.url %}
+      {% endcase %}
+
+      {% if url %}
+        <a
+          href="{{ url }}"
+          aria-label="{{ entry.type }}"
+          {% assign link_types = '' %}
+
+          {% unless entry.noblank %}
+            target="_blank"
+            {% assign link_types = 'noopener noreferrer' %}
+          {% endunless %}
+
+          {% if entry.type == 'mastodon' %}
+            {% assign link_types = link_types | append: ' me' | strip %}
+          {% endif %}
+
+          {% unless link_types == empty %}
+            rel="{{ link_types }}"
+          {% endunless %}
+        >
+          <i class="{{ entry.icon }}"></i>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <!-- .sidebar-bottom -->
+</aside>
+<!-- #sidebar -->
