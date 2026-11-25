@@ -1,5 +1,5 @@
 ---
-title: Apache와 Tomcat 완벽 정리 — Web Server와 WAS의 이해부터 연동 구조까지
+title: Apache와 Tomcat
 description: Apache HTTP Server와 Apache Tomcat의 개념, 차이점, 내부 구조, 그리고 실무에서 둘을 함께 연동해 사용하는 이유와 방식을 정리합니다.
 date: 2026-11-25 14:50:00 +0900
 categories: [Backend, Web]
