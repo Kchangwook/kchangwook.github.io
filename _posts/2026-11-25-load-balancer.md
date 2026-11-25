@@ -2,8 +2,8 @@
 title: 로드밸런서
 description: 로드 밸런서의 개념과 필요성, L4와 L7의 차이, 주요 트래픽 분산 알고리즘, 그리고 다중 서버 환경에서의 세션 관리 방식을 정리합니다.
 date: 2026-11-25 16:38:00 +0900
-categories: [Backend, Infra]
-tags: [load-balancer, l4, l7, session, infra, network, backend]
+categories: [Infra]
+tags: [load-balancer, l4, l7, session, infra, network]
 mermaid: true
 ---
 

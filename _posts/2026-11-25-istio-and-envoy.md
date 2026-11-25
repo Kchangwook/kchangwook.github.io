@@ -2,7 +2,7 @@
 title: Istio와 Envoy
 description: 서비스 메시의 개념과 범위, Data Plane을 담당하는 Envoy와 Control Plane을 담당하는 Istio의 역할, 사이드카 동작 원리, 그리고 도입 시 고려사항을 정리합니다.
 date: 2026-11-25 23:05:00 +0900
-categories: [Backend, Infra]
+categories: [Infra]
 tags: [istio, envoy, service-mesh, kubernetes, proxy, msa, infra]
 mermaid: true
 ---
