@@ -1,0 +1,16 @@
+{
+  "auto-stage-new-files": {
+    "PostToolUse": [
+      {
+        "matcher": "write_file|write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./scripts/auto-stage-new-files.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
